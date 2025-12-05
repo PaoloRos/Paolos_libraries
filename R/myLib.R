@@ -62,12 +62,17 @@ resNormality <- function(df) { #, resid = "resid"
 #======== Plot dei residui ======== 
 
 #Residuals plot nei parametri tabella tibble `t` e colonna `n`, nome della colonna  da stampare "nome"
-residPlot <- function(t, n, nome="inserire nome") {
+residPlot <- function(t, n, nome="inserire nome", unita=NULL) {
+  if (!is.null(unita)) {
+    nome_y <- paste0("Residui (", unita, ")")
+  } else {
+    nome_y <- "Residui"
+  }
   t %>%
     ggplot(aes(x={{n}}, y=resid)) +
     geom_hline(yintercept = 0, color = "black", linetype = "dotted", linewidth = 0.5) +
     geom_point() +
-    labs(x = nome, y = "Residui")
+    labs(x = nome, y = nome_y)
 }
 
 # {{}} -> permette di far interpretare `n` come il nome di una colonna, piuttosto che di una variabile
