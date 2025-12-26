@@ -33,7 +33,51 @@ to_latex_sci <- function(x, digits = 2) {
   paste0("$", mantissa, " \\times 10^{", exp, "}$")
 }
 
-# Stampa "10^ordine" per gli assi dei grafici: estrae solo l'esponente
 notazione_scientifica <- function(x) {
+  # It prints "10^order" for the plot axes: it extracts the exponent only
   return(parse(text = paste0("10^", log10(x))))
+}
+
+#======== Bode Plot ========
+
+bode_plot <- function(tf, w, iu = 1)  
+{
+  # Parameters class:
+  # transfer funciont: class(tf) = "tf", "ss", "zpk"
+  # frequency vector: class(w) = "numeric"
+  # inputs number: class(iu) = "integer"
+  
+  # Frequency response
+  b <- bode(tf, w, iu)
+  
+  df <- tibble(
+    f = b$w/(2*pi),
+    mag = b$mag,
+    phase = b$phase
+  )
+  
+  # Rescaling the secondary axis
+  phase_min <- min(df$phase)
+  phase_max <- max(df$phase)
+  mag_min   <- min(df$mag)
+  mag_max   <- max(df$mag)
+  
+  a <- (mag_max - mag_min)/(phase_max - phase_min)
+  c <- mag_min - a*phase_min
+  
+  df$phase_scaled <- a*df$phase + c
+    
+  # Output plot
+  df %>% ggplot(aes(x = f)) +
+    geom_line(aes(y = mag, color = "Magnitude")) +
+    geom_line(aes(y = phase_scaled, color = "Phase"), linetype = "dashed") +
+    scale_x_log10(labels = notazione_scientifica) +
+    annotation_logticks(sides = "tb",linewidth = 0.4) +
+    scale_y_continuous(
+      name = "Magnitude (dB)",
+      sec.axis = sec_axis(~ (. - c)/a, name = "Phase (deg)")  # trasformazione inversa
+    ) +
+    labs(
+      x = "Frequency (Hz)", color = "Quantity"
+    )
 }
