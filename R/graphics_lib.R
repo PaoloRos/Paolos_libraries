@@ -72,7 +72,7 @@ bode_plot <- function(tf, w, iu = 1)
     geom_line(aes(y = mag, color = "Magnitude")) +
     geom_line(aes(y = phase_scaled, color = "Phase"), linetype = "dashed") +
     scale_x_log10(labels = notazione_scientifica) +
-    annotation_logticks(sides = "tb",linewidth = 0.4) +
+    annotation_logticks(sides = "b") +
     scale_y_continuous(
       name = "Magnitude (dB)",
       sec.axis = sec_axis(~ (. - c)/a, name = "Phase (deg)")  # trasformazione inversa
