@@ -1,3 +1,11 @@
+# --- Library related to functions used in ADAS course ---
+#
+#
+# Author: Paolo Rossi
+#
+# Last upload: 12/31/2025
+# 
+# ----------------------------------------------
 # In questo script sono definite funzioni di uso comune durante il corso
 
 #======== Inclusione librerie ======== 

@@ -2,6 +2,8 @@
 #
 #
 # Author: Paolo Rossi
+#
+# Last upload: 12/31/2025
 # 
 # ----------------------------------------------
 
@@ -44,7 +46,7 @@ bode_plot <- function(tf, w, iu = 1)
 {
   # Parameters class:
   # transfer funciont: class(tf) = "tf", "ss", "zpk"
-  # frequency vector: class(w) = "numeric"
+  # frequency vector (logharitmic): class(w) = "numeric"
   # inputs number: class(iu) = "integer"
   
   # Frequency response
