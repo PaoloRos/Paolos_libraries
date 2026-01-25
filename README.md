@@ -8,3 +8,4 @@
 
     * `graphics_lib`: related to graphics formatting
     * `statistics`
+    * `dig_signal_proc`: related to digital signal processing
