@@ -27,6 +27,64 @@ psDnN <- function(a, b, n = 1) {
   mean(a_d * b_d) / (norm_ps(a_d)*norm_ps(b_d))
 }
 
+extract_plateaus <- function(df, fs, win = 50, min_time = 1, thr_coef = 5) {
+  
+  # This functions extracts plateaus discarding transitions.
+  # df = data.frame, needs to contain columns of time `t` and input signal `input`!
+  # fs = sampling frequency
+  # win = window of the rolling mean
+  # min_time = minimum time of plateaus' duration
+  # thr_coef = tolerance of the MAD threashold (lower thr_coef --> narrower tolerance)
+  
+  x  <- df$input
+  tt <- df$t
+  
+  # Precompute rolling means (ChatGPT's algorithm)
+  # compute the slope of the window:  slope = cov(t, x)/var(t)
+  # This solution is faster than computing slope by calling lm()
+  mx  <- rollmean(x,  win, fill = NA, align = "center")
+  mt  <- rollmean(tt, win, fill = NA, align = "center")
+  mxt <- rollmean(x * tt, win, fill = NA, align = "center")
+  mt2 <- rollmean(tt^2, win, fill = NA, align = "center")
+  
+  # Closed-form slope
+  slope <- (mxt - mx * mt) / (mt2 - mt^2)
+  
+  out <- df
+  out$slope <- slope
+  
+  # MAD threshold
+  mad_slope <- mad(out$slope, na.rm = TRUE)                 # mad() is implemented in C, so it's faster
+  thr <- thr_coef * mad_slope
+  
+  out$is_plateau_raw <- abs(out$slope) < thr
+  out$is_plateau_raw[is.na(out$is_plateau_raw)] <- FALSE    # fix NA values
+  
+  # Block detection
+  change <- c(TRUE, diff(out$is_plateau_raw) != 0)          # Flag of transitions: slope[i+1] - slope[i] != 0?
+  block  <- cumsum(change)                                  
+  
+  # Plateaus' duration
+  min_len <- ceiling(min_time * fs)
+  
+  out <- out %>%
+    mutate(block = block) %>%
+    group_by(block) %>%
+    mutate(
+      n_block = n(),
+      is_plateau = is_plateau_raw & n_block >= min_len      # final flag
+    ) %>%
+    ungroup() %>% 
+    mutate(
+      plateau_id = ifelse(is_plateau, cumsum(change & is_plateau), NA)
+    )
+  
+  return(
+    out %>% dplyr::filter(is_plateau) %>%
+      select(-slope, -is_plateau_raw, -block, -n_block, -is_plateau)
+  )
+}
+
 # --- Fourier Transform ---
 
 # Harmonic components
